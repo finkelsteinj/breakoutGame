@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Breakout Game</title>
+		<style type="text/css">
+			canvas { background: #eee; }
+		</style>
+  </head>
+
+  <body onload="startGame()">
+
+    <script type="text/javascript">
+
+      // TODO: create brick array
+      // TODO: implement brick collisin dectection
+      // TODO: add score feature
+      // TODO: add start / end screen
+      // TODO: add styling / animations
+
+    var ball,
+        paddle;
+
+    var x = 500,
+        y = 450,
+        dx = 2,
+        dy = -2,
+        canvasWidth = 800,
+        canvasHeight = 600
+        paddleWidth = 150,
+        paddleHeight = 10,
+        paddleX = (canvasWidth - paddleWidth) / 2,
+        paddleY = canvasHeight - paddleHeight - 5,
+        brickWidth = (canvasWidth - 10) / 20,
+        brickHeight = 15,
+        brickX = 5,
+        brickY = 50;
+
+    function startGame() {
+      gameArea.start();
+      ball = new ballComponent(x, y, 10, "blue");
+      paddle = new paddleComponent(paddleX,
+                                    paddleY,
+                                    paddleWidth,
+                                    paddleHeight,
+                                    "blue");
+      bricks = new brickComponents(brickX,
+                                    brickY,
+                                    brickWidth,
+                                    brickHeight,
+                                    "blue");
+    }
+
+    var gameArea = {
+      canvas : document.createElement("canvas"),
+      start  : function() {
+        this.canvas.width = canvasWidth;
+        this.canvas.height = canvasHeight;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]); // ??
+        this.interval = setInterval(updateGameArea, 5);
+
+        // keyboard movement - 37 is left arrow - 39 is right arrow
+        window.addEventListener('keydown', function (e) {
+            e.preventDefault();
+            gameArea.keys = (gameArea.keys || []);
+            gameArea.keys[e.keyCode] = (e.type == "keydown");
+        })
+        window.addEventListener('keyup', function (e) {
+            gameArea.keys[e.keyCode] = (e.type == "keydown");
+        })
+      },
+      clear  : function() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      }
+    }
+
+
+      // creates paddle object
+      function paddleComponent(x, y, width, height, color) {
+        this.width = width;
+        this.height = height;
+        this.x = x;
+        this.y = y;
+
+        this.update = function() {
+          ctx = gameArea.context;
+          ctx.fillStyle = color;
+          ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
+
+        // checks if the ball collides between the x and y pos of the paddle
+        this.checkCollisionWithPaddle = function() {
+          if (ball.y >= this.y &&
+              ball.y <= this.y + this.height &&
+              ball.x >= this.x - ball.diameter &&
+              ball.x <= this.x + this.width - ball.diameter) {
+                  return true;
+                  console.log('ball-paddle collision')
+          } else {
+            return false;
+          }
+        }
+
+        this.bounceOffPaddle = function() {
+          if (paddle.checkCollisionWithPaddle() == true) {
+
+            // if ball collides w/ left side of paddle, ball goes left
+            if (ball.x + ball.diameter <= this.x + (this.width / 2)) {
+              dx = -(Math.abs(dx));
+              console.log('ball collides w/ left side of paddle')
+
+             // if ball collides w/ right side of paddle, ball goes right
+            } else if (ball.x + ball.diameter > this.x + (this.width / 2)) {
+              dx = Math.abs(dx);
+               console.log('ball collides w/ right side of paddle')
+            }
+
+            dy = -dy;
+          }
+        }
+      }
+
+
+      // creates ball object
+      function ballComponent(x, y, radius, color) {
+        this.radius = radius;
+        this.diameter = radius * 2;
+        this.x = x;
+        this.y = y;
+
+        this.update = function() {
+          ctx = gameArea.context;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+          ctx.fillStyle = color;
+          ctx.fill();
+          ctx.closePath();
+        }
+
+        this.hitSideWalls = function() {
+          if (ball.x + dx < ball.radius ||
+                ball.x + dx > canvasWidth - ball.radius)
+            dx = -dx;
+        }
+
+        this.hitTopWall = function() {
+          if (ball.y + dy < ball.radius)
+  					dy = -dy;
+        }
+
+        this.hitFloor = function() {
+          if (ball.y + dy > canvasWidth - ball.radius) {
+            console.log('Out of Bounds');
+
+            // reset ball position
+            ball.x = 50;
+            ball.y = 50;
+            ball.dx = 2;
+            ball.dy = 2;
+          }
+        }
+      }
+
+
+      //creates brick components
+      function brickComponents(x, y, width, height, color) {
+        this.x = x;
+        this. y = y;
+        this.width = width;
+        this.height = height;
+
+        this.update = function() {
+          // while (this.x <= canvasWidth - 5 || this.y <= canvasHeight / 2) {
+            ctx = gameArea.context;
+            ctx.fillStyle = color;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+
+          //   if (this.x <= canvasHeight - 5) {
+          //     this.x = this.x + this.width;
+          //   } else {
+          //     this.x = x;
+          //
+          //     if (this.y <= canvasHeight / 2)
+          //       this.y = this.y + this.height;
+          //   }
+          // }
+        }
+      }
+
+
+      // clears the screen and resets the game every 5 milliseconds
+      // runs functions everytime
+      function updateGameArea() {
+        gameArea.clear();
+        if (gameArea.keys && gameArea.keys[37]) { paddle.x -= 3; }
+        if (gameArea.keys && gameArea.keys[39]) { paddle.x += 3; }
+        ball.x += dx;
+        ball.y += dy;
+        ball.update();
+        ball.hitSideWalls();
+        ball.hitTopWall();
+        ball.hitFloor();
+        paddle.update();
+        paddle.bounceOffPaddle();
+        bricks.update();
+      }
+
+    </script>
+
+  </body>
+
+</html>
