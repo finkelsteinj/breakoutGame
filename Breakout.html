@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Breakout Game</title>
 		<style type="text/css">
-			canvas { background: #eee; }
+			canvas {
+        background: #212121;
+        outline: white 5px solid;
+      }
+      body { background-color: white; }
 		</style>
   </head>
 
@@ -57,7 +61,7 @@
                                     paddleY,
                                     paddleWidth,
                                     paddleHeight,
-                                    "blue");
+                                    "gray");
       bricks = new brickComponents(brickX,
                                     brickY,
                                     brickWidth,
@@ -108,8 +112,8 @@
         this.checkCollisionWithPaddle = function() {
           if (ball.y >= this.y &&
               ball.y <= this.y + this.height &&
-              ball.x >= this.x - ball.diameter &&
-              ball.x <= this.x + this.width - ball.diameter) {
+              ball.x >= this.x - ball.radius &&
+              ball.x <= this.x + this.width - ball.radius) {
                   return true;
                   console.log('ball-paddle collision')
           } else {
@@ -121,12 +125,12 @@
           if (paddle.checkCollisionWithPaddle() === true) {
 
             // if ball collides w/ left side of paddle, ball goes left
-            if (ball.x + ball.diameter <= this.x + (this.width / 2)) {
+            if (ball.x + ball.radius <= this.x + (this.width / 2)) {
               dx = -(Math.abs(dx));
               console.log('ball collides w/ left side of paddle')
 
              // if ball collides w/ right side of paddle, ball goes right
-            } else if (ball.x + ball.diameter > this.x + (this.width / 2)) {
+           } else if (ball.x + ball.radius > this.x + (this.width / 2)) {
               dx = Math.abs(dx);
                console.log('ball collides w/ right side of paddle')
             }
@@ -235,6 +239,21 @@
       }
 
     </script>
+
+
+    <div>
+      <h2>Controls:</h2>
+      <p>Left arrow to move the paddle left.</br>
+        Right arrow to move the paddle right.
+      </p>
+
+      <h2>Other Info:</h2>
+      <p>If you would like to see the code click
+        <a href="https://github.com/finkelsteinj/breakoutGame/blob/master/Breakout.html"
+          target="_blank">here</a>!</br>
+        If you encounter any bugs, please write them down on the sheet.</br>
+      </p>
+    </div>
 
   </body>
 
