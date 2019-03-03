@@ -13,8 +13,8 @@
 
     <script type="text/javascript">
 
-      // TODO: create brick array
       // TODO: implement brick collisin dectection
+      // TODO: add padding
       // TODO: add score feature
       // TODO: add start / end screen
       // TODO: add styling / animations
@@ -22,20 +22,33 @@
     var ball,
         paddle;
 
-    var x = 500,
-        y = 450,
+    var x = 50,
+        y = 250,
         dx = 2,
-        dy = -2,
+        dy = 2,
         canvasWidth = 800,
         canvasHeight = 600
         paddleWidth = 150,
         paddleHeight = 10,
         paddleX = (canvasWidth - paddleWidth) / 2,
         paddleY = canvasHeight - paddleHeight - 5,
-        brickWidth = (canvasWidth - 10) / 20,
+        brickWidth = (canvasWidth - 10) / 13,
         brickHeight = 15,
         brickX = 5,
-        brickY = 50;
+        brickY = 50,
+        brickCol = 12,
+        brickRow = 6;
+
+    var bricksArr = [];
+    for (var c = 0; c < brickCol; c++) {
+      // creates a new empty array in 'bricks[]' at position 'c'
+      bricksArr[c] = [];
+      for (var r = 0; r < brickRow; r++) {
+        // creates a new brick, in 'brick[c]' at postion 'r'
+        bricksArr[c][r] = { x: 0, y: 0 };
+      }
+    }
+
 
     function startGame() {
       gameArea.start();
@@ -59,6 +72,7 @@
         this.canvas.height = canvasHeight;
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]); // ??
+        // this.interval = requestAnimationFrame(updateGameArea);
         this.interval = setInterval(updateGameArea, 5);
 
         // keyboard movement - 37 is left arrow - 39 is right arrow
@@ -104,7 +118,7 @@
         }
 
         this.bounceOffPaddle = function() {
-          if (paddle.checkCollisionWithPaddle() == true) {
+          if (paddle.checkCollisionWithPaddle() === true) {
 
             // if ball collides w/ left side of paddle, ball goes left
             if (ball.x + ball.diameter <= this.x + (this.width / 2)) {
@@ -119,6 +133,15 @@
 
             dy = -dy;
           }
+        }
+
+        // blocks paddle from going too far left or right of canvas
+        this.keepPaddleInGameArea = function() {
+          if (this.x <= 0)
+            this.x = 0;
+
+          if (this.x + this.width >= canvasWidth)
+            this.x = canvasWidth - this.width;
         }
       }
 
@@ -140,25 +163,25 @@
         }
 
         this.hitSideWalls = function() {
-          if (ball.x + dx < ball.radius ||
-                ball.x + dx > canvasWidth - ball.radius)
+          if (this.x + dx < this.radius ||
+                this.x + dx > canvasWidth - this.radius)
             dx = -dx;
         }
 
         this.hitTopWall = function() {
-          if (ball.y + dy < ball.radius)
+          if (this.y + dy < this.radius)
   					dy = -dy;
         }
 
         this.hitFloor = function() {
-          if (ball.y + dy > canvasWidth - ball.radius) {
-            console.log('Out of Bounds');
+          if (this.y + dy > canvasWidth - this.radius) {
+            console.log('Out of Bounds')
 
             // reset ball position
-            ball.x = 50;
-            ball.y = 50;
-            ball.dx = 2;
-            ball.dy = 2;
+            this.x = x;
+            this.y = y;
+            this.dx = Math.abs(dx);
+            this.dy = Math.abs(dy);
           }
         }
       }
@@ -172,26 +195,28 @@
         this.height = height;
 
         this.update = function() {
-          // while (this.x <= canvasWidth - 5 || this.y <= canvasHeight / 2) {
-            ctx = gameArea.context;
-            ctx.fillStyle = color;
-            ctx.fillRect(this.x, this.y, this.width, this.height);
+          for (var c = 0; c < brickCol; c++) {
+            for (var r = 0; r < brickRow; r++) {
+              this.x = (c * (this.width + 5)) + 7;
+              this.y = (r * (this.height + 5)) + 50;
 
-          //   if (this.x <= canvasHeight - 5) {
-          //     this.x = this.x + this.width;
-          //   } else {
-          //     this.x = x;
-          //
-          //     if (this.y <= canvasHeight / 2)
-          //       this.y = this.y + this.height;
-          //   }
-          // }
+              bricksArr[c][r].x = this.x;
+              bricksArr[c][r].y = this.y;
+
+              ctx = gameArea.context;
+              ctx.fillStyle = color;
+              ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+          }
+        }
+
+        this.brickCollision = function() {
+          // use splice() to remove array elements
         }
       }
 
 
-      // clears the screen and resets the game every 5 milliseconds
-      // runs functions everytime
+      // runs functions every interval
       function updateGameArea() {
         gameArea.clear();
         if (gameArea.keys && gameArea.keys[37]) { paddle.x -= 3; }
@@ -204,7 +229,9 @@
         ball.hitFloor();
         paddle.update();
         paddle.bounceOffPaddle();
+        paddle.keepPaddleInGameArea();
         bricks.update();
+        bricks.brickCollision();
       }
 
     </script>
