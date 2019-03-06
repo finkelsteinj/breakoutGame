@@ -6,10 +6,11 @@
 		<title>Breakout Game</title>
 		<style type="text/css">
 			canvas {
-        background: #212121;
+        background: #000000;
         outline: white 5px solid;
       }
-      body { background-color: white; }
+      body { background-color: #303030; }
+      div { color: white; }
 		</style>
   </head>
 
@@ -17,14 +18,10 @@
 
     <script type="text/javascript">
 
-      // TODO: implement brick collisin dectection
       // TODO: add padding
       // TODO: add score feature
       // TODO: add start / end screen
       // TODO: add styling / animations
-
-    var ball,
-        paddle;
 
     var x = 50,
         y = 250,
@@ -41,7 +38,9 @@
         brickX = 5,
         brickY = 50,
         brickCol = 12,
-        brickRow = 6;
+        brickRow = 6,
+        lives = 3,
+        gameSpeed = 5;
 
     var bricksArr = [];
     for (var c = 0; c < brickCol; c++) {
@@ -49,14 +48,14 @@
       bricksArr[c] = [];
       for (var r = 0; r < brickRow; r++) {
         // creates a new brick, in 'brick[c]' at postion 'r'
-        bricksArr[c][r] = { x: 0, y: 0 };
+        bricksArr[c][r] = { x: 0, y: 0, status: 1};
       }
     }
 
 
     function startGame() {
       gameArea.start();
-      ball = new ballComponent(x, y, 10, "blue");
+      ball = new ballComponent(x, y, 10, "#0892d0");
       paddle = new paddleComponent(paddleX,
                                     paddleY,
                                     paddleWidth,
@@ -66,7 +65,8 @@
                                     brickY,
                                     brickWidth,
                                     brickHeight,
-                                    "blue");
+                                    "#0892d0");
+      features = new gameFeatures();
     }
 
     var gameArea = {
@@ -76,8 +76,7 @@
         this.canvas.height = canvasHeight;
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]); // ??
-        // this.interval = requestAnimationFrame(updateGameArea);
-        this.interval = setInterval(updateGameArea, 5);
+        this.interval = setInterval(updateGameArea, gameSpeed);
 
         // keyboard movement - 37 is left arrow - 39 is right arrow
         window.addEventListener('keydown', function (e) {
@@ -186,6 +185,8 @@
             this.y = y;
             this.dx = Math.abs(dx);
             this.dy = Math.abs(dy);
+
+            lives = lives - 1;
           }
         }
       }
@@ -201,21 +202,60 @@
         this.update = function() {
           for (var c = 0; c < brickCol; c++) {
             for (var r = 0; r < brickRow; r++) {
-              this.x = (c * (this.width + 5)) + 7;
-              this.y = (r * (this.height + 5)) + 50;
+              if (bricksArr[c][r].status == 1) {
+                this.x = (c * (this.width + 5)) + 7;
+                this.y = (r * (this.height + 5)) + 50;
 
-              bricksArr[c][r].x = this.x;
-              bricksArr[c][r].y = this.y;
+                bricksArr[c][r].x = this.x;
+                bricksArr[c][r].y = this.y;
 
-              ctx = gameArea.context;
-              ctx.fillStyle = color;
-              ctx.fillRect(this.x, this.y, this.width, this.height);
+                ctx = gameArea.context;
+                ctx.fillStyle = color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+              }
             }
           }
         }
 
         this.brickCollision = function() {
-          // use splice() to remove array elements
+          for (c = 0; c < brickCol; c++) {
+            for (r = 0; r < brickRow; r++) {
+              var b = bricksArr[c][r];
+
+              if (b.status == 1) {
+                if (ball.x > b.x - ball.diameter
+                    && ball.x < (b.x + this.width) - ball.diameter
+                    && ball.y > b.y - ball.diameter
+                    && ball.y < (b.y + this.height) - ball.diameter) {
+                      dy = -dy;
+                      b.status = 0;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      function gameFeatures() {
+        this.updateScore = function() {
+          if (lives > 0) {
+            var score = document.getElementById('score');
+            var scoreNumber = score.innerHTML;
+            scoreNumber++;
+            score.innerHTML = scoreNumber;
+          }
+        }
+
+        this.checkLives = function() {
+          if (lives <= 0) {
+            gameArea.clear();
+
+            ctx = gameArea.context;
+            ctx.font = "100px Arial";
+            ctx.fillStyle = "red";
+            ctx.textAlign = "center";
+            ctx.fillText("GAME OVER", canvasWidth / 2, canvasHeight / 2);
+          }
         }
       }
 
@@ -236,18 +276,23 @@
         paddle.keepPaddleInGameArea();
         bricks.update();
         bricks.brickCollision();
+        features.updateScore();
+        features.checkLives();
       }
 
     </script>
 
+    <div>
+      <h2>Score:</h2><p id="score">0</p>
+    </div>
 
     <div>
-      <h2>Controls:</h2>
+      <h3>Controls:</h3>
       <p>Left arrow to move the paddle left.</br>
         Right arrow to move the paddle right.
       </p>
 
-      <h2>Other Info:</h2>
+      <h3>Other Info:</h3>
       <p>If you would like to see the code click
         <a href="https://github.com/finkelsteinj/breakoutGame/blob/master/Breakout.html"
           target="_blank">here</a>!</br>
