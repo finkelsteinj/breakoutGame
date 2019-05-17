@@ -330,7 +330,7 @@ function updateGameArea() {
     paddle.keepPaddleInGameArea();
     bricks.update();
     bricks.brickCollision();
-    bricks.resetBricks();
+    // bricks.resetBricks();
     lives.update();
     lives.checkLives();
   }
