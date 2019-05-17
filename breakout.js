@@ -1,14 +1,14 @@
 var x = 50,
     y = 250,
-    dx = 3,
-    dy = 3,
+    dx = 5,
+    dy = 5,
     canvasWidth = 800,
     canvasHeight = 600
     paddleWidth = 150,
     paddleHeight = 10,
     paddleX = (canvasWidth - paddleWidth) / 2,
     paddleY = canvasHeight - paddleHeight - 5,
-    paddledX = 5,
+    paddledX = 7,
     brickWidth = (canvasWidth - 10) / 13,
     brickHeight = 15,
     brickX = 5,
@@ -19,20 +19,21 @@ var x = 50,
     livesX = 30,
     livesY = 615,
     gameSpeed = 5,
-    gameActive = true;
+    gameActive = true,
+    numberBricksActive = brickCol * brickRow;
 
 var bricksArr = [];
-  for (var c = 0; c < brickCol; c++) {
+  for (c = 0; c < brickCol; c++) {
     // creates a new empty array in 'bricks[]' at position 'c'
     bricksArr[c] = [];
-    for (var r = 0; r < brickRow; r++) {
+    for (r = 0; r < brickRow; r++) {
       // creates a new brick, in 'brick[c]' at postion 'r'
       bricksArr[c][r] = { x: 0, y: 0, status: 1};
     }
   }
 
 var livesArr = [];
-  for (var r = 0; r < numberLives; r++) {
+  for (r = 0; r < numberLives; r++) {
     livesArr[r] = { x: 0, status: 1};
   }
 
@@ -195,8 +196,8 @@ function brickComponents(x, y, width, height, color) {
   this.height = height;
 
   this.update = function() {
-    for (var c = 0; c < brickCol; c++) {
-      for (var r = 0; r < brickRow; r++) {
+    for (c = 0; c < brickCol; c++) {
+      for (r = 0; r < brickRow; r++) {
         if (bricksArr[c][r].status == 1) {
           this.x = (c * (this.width + 5)) + 7;
           this.y = (r * (this.height + 5)) + 50;
@@ -227,6 +228,8 @@ function brickComponents(x, y, width, height, color) {
                 playBoop();
                 console.log('ball intersects y-pos of brick')
                 updateScore();
+                numberBricksActive = numberBricksActive - 1;
+                this.increaseSpeed();
         }
       }
     }
@@ -235,13 +238,31 @@ function brickComponents(x, y, width, height, color) {
   this.isBrickActive = function() {
     for (c = 0; c < brickCol; c++) {
       for (r = 0; r < brickRow; r++) {
-        return bricksArr[c][r] = 1;
+        if (numberBricksActive >= 0) {
+          return true;
+        }
       }
     }
   }
 
+  this.increaseSpeed = function() {
+    if ((72 / numberBricksActive) % 2 == 0) {
+      if (dx > 1) {
+        dx = dx + 1;
+      } else {
+        dx = dx - 1;
+      }
+      if (dy > 1) {
+        dy = dy + 1;
+      } else {
+        dy = dy - 1;
+      }
+      paddledX = paddledX + 1;
+    }
+  }
+
   this.resetBricks = function() {
-    if(bricksArr.some(isBrickActive) !== true) {
+    if (bricksArr.some(this.isBrickActive) !== true) {
       for (c = 0; c < brickCol; c++) {
         for (r = 0; r < brickRow; r++) {
           var b = bricksArr[c][r];
